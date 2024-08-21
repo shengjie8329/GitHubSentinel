@@ -36,6 +36,14 @@ class CommandHandler:
         parser_export_range.add_argument('days', type=int, help='The number of days to export progress for')
         parser_export_range.set_defaults(func=self.export_progress_by_date_range)
 
+        parser_export_range = subparsers.add_parser('export-range-ex', help='Export progress over a range of dates by start and end ')
+        parser_export_range.add_argument('repo', type=str,
+                                         help='The repository to export progress from (e.g., owner/repo)')
+        parser_export_range.add_argument('start', type=str, help='The date where the data begins from (e.g. 2020-01-01)')
+        parser_export_range.add_argument('end', type=str,
+                                         help='The date where the data ends (e.g. 2020-12-01)')
+        parser_export_range.set_defaults(func=self.export_progress_by_date_range_ex)
+
         parser_generate = subparsers.add_parser('generate', help='Generate daily report from markdown file')
         parser_generate.add_argument('file', type=str, help='The markdown file to generate report from')
         parser_generate.set_defaults(func=self.generate_daily_report)
@@ -66,6 +74,10 @@ class CommandHandler:
     def export_progress_by_date_range(self, args):
         self.github_client.export_progress_by_date_range(args.repo, days=args.days)
         print(f"Exported progress for the last {args.days} days for repository: {args.repo}")
+
+    def export_progress_by_date_range_ex(self, args):
+        self.github_client.export_progress_by_date_range_ex(args.repo, start=args.start, end=args.end)
+        print(f"Exported progress in ({args.start} to {args.end}) for repository: {args.repo}")
 
     def generate_daily_report(self, args):
         self.report_generator.generate_daily_report(args.file)
