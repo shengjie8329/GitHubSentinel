@@ -4,6 +4,8 @@ import requests  # 导入requests库用于HTTP请求
 from datetime import datetime, date, timedelta  # 导入日期处理模块
 import os  # 导入os模块用于文件和目录操作
 from logger import LOG  # 导入日志模块
+from utils import *
+
 
 class GitHubClient:
     def __init__(self, token):
@@ -40,7 +42,10 @@ class GitHubClient:
         }
         response = requests.get(url, headers=self.headers, params=params)
         response.raise_for_status()
-        return response.json()
+        all_json = response.json()
+        if until is not None and len(until) > 0:
+            all_json = filter_json_by_date(all_json, until)
+        return all_json
 
     def fetch_pull_requests(self, repo, since=None, until=None):
         url = f'https://api.github.com/repos/{repo}/pulls'  # 构建获取拉取请求的API URL
@@ -51,7 +56,12 @@ class GitHubClient:
         }
         response = requests.get(url, headers=self.headers, params=params)
         response.raise_for_status()
-        return response.json()
+        all_json = response.json()
+        if since is not None and len(since) > 0:
+            all_json = filter_json_by_date_from(all_json, since)
+        if until is not None and len(until) > 0:
+            all_json = filter_json_by_date(all_json, until)
+        return all_json
 
     def export_daily_progress(self, repo):
         today = datetime.now().date().isoformat()  # 获取今天的日期
@@ -89,5 +99,32 @@ class GitHubClient:
             for issue in updates['issues']:  # 写入在指定日期内关闭的问题
                 file.write(f"- {issue['title']} #{issue['number']}\n")
         
+        LOG.info(f"Exported time-range progress to {file_path}")  # 记录日志
+        return file_path
+
+    def export_progress_by_date_range_ex(self, repo, start=None, end=None):
+        if start is None:
+            start = (date.today() - timedelta(days=7)).isoformat()  # 获取当前日期
+        if end is None:
+            end = date.today().isoformat()  # 计算开始日期
+
+        updates = self.fetch_updates(repo, since=start, until=end)  # 获取指定日期范围内的更新
+
+        repo_dir = os.path.join('daily_progress', repo.replace("/", "_"))  # 构建目录路径
+        os.makedirs(repo_dir, exist_ok=True)  # 确保目录存在
+
+        # 更新文件名以包含日期范围
+        date_str = f"{convert_to_date(start).strftime('%Y-%m-%d')}_to_{convert_to_date(end).strftime('%Y-%m-%d')}"
+        file_path = os.path.join(repo_dir, f'{date_str}.md')  # 构建文件路径
+
+        with open(file_path, 'w') as file:
+            file.write(f"# Progress for {repo} ({start} to {end})\n\n")
+            file.write(f"\n## Issues Closed in ({start} to {end})\n")
+            for issue in updates['issues']:  # 写入在指定日期内关闭的问题
+                file.write(f"- {issue['title']} #{issue['number']}\n")
+            file.write(f"\n## Pull Requests Merged in  ({start} to {end})\n")
+            for pr in updates['pull_requests']:  # 写入在指定日期内合并的拉取请求
+                file.write(f"- {pr['title']} #{pr['number']}\n")
+
         LOG.info(f"Exported time-range progress to {file_path}")  # 记录日志
         return file_path

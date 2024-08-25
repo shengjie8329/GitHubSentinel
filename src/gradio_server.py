@@ -1,3 +1,5 @@
+from datetime import timedelta, date, datetime
+
 import gradio as gr  # 导入gradio库用于创建GUI
 
 from config import Config  # 导入配置管理模块
@@ -14,12 +16,31 @@ llm = LLM()
 report_generator = ReportGenerator(llm)
 subscription_manager = SubscriptionManager(config.subscriptions_file)
 
-def export_progress_by_date_range(repo, days):
-    # 定义一个函数，用于导出和生成指定时间范围内项目的进展报告
-    raw_file_path = github_client.export_progress_by_date_range(repo, days)  # 导出原始数据文件路径
-    report, report_file_path = report_generator.generate_report_by_date_range(raw_file_path, days)  # 生成并获取报告内容及文件路径
+
+def export_progress_by_date_range(repo, days, start, end):
+
+    if start is None and end is None:
+        # 定义一个函数，用于导出和生成指定时间范围内项目的进展报告
+        raw_file_path = github_client.export_progress_by_date_range(repo, days)  # 导出原始数据文件路径
+        report, report_file_path = report_generator.generate_report_by_date_range(raw_file_path, days)  # 生成并获取报告内容及文件路径
+    else:
+        if start is None:
+            since = (end - timedelta(days=7)).isoformat()
+        else:
+            since = start.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        if end is None:
+            until = date.today().isoformat()
+        else:
+            until = end.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        print(f"since {since}")
+        print(f"until {until}")
+        raw_file_path = github_client.export_progress_by_date_range_ex(repo, since, until)
+        report, report_file_path = report_generator.generate_report_by_date_range_ex(raw_file_path, since, until)  # 生成并获取报告内容及文件路径
 
     return report, report_file_path  # 返回报告内容和报告文件路径
+
 
 # 创建Gradio界面
 demo = gr.Interface(
@@ -31,6 +52,8 @@ demo = gr.Interface(
         ),  # 下拉菜单选择订阅的GitHub项目
         gr.Slider(value=2, minimum=1, maximum=7, step=1, label="报告周期", info="生成项目过去一段时间进展，单位：天"),
         # 滑动条选择报告的时间范围
+        gr.DateTime(label="追踪起始时间", info="所要追踪项目时间段的开始时间", type="datetime"),
+        gr.DateTime(label="追踪结束时间", info="所要追踪项目时间段的结束时间", type="datetime"),
     ],
     outputs=[gr.Markdown(), gr.File(label="下载报告")],  # 输出格式：Markdown文本和文件下载
 )
