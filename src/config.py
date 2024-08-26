@@ -17,7 +17,7 @@ class Config:
             self.email = config.get('email', {})
             # 使用环境变量或配置文件中的电子邮件密码
             self.email['password'] = os.getenv('EMAIL_PASSWORD', self.email.get('password', ''))
-
+            print(f"email------>: {self.email['password']}")
             self.subscriptions_file = config.get('subscriptions_file')
             # 默认每天执行
             self.freq_days = config.get('github_progress_frequency_days', 1)
