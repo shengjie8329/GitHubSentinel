@@ -4,13 +4,17 @@ import argparse
 
 import argparse  # 导入argparse库，用于处理命令行参数解析
 
+from hacknews_client import HackNewsClient
+
+
 class CommandHandler:
-    def __init__(self, github_client, subscription_manager, report_generator):
+    def __init__(self, github_client, subscription_manager, report_generator, hacknews_client: HackNewsClient):
         # 初始化CommandHandler，接收GitHub客户端、订阅管理器和报告生成器
         self.github_client = github_client
         self.subscription_manager = subscription_manager
         self.report_generator = report_generator
         self.parser = self.create_parser()  # 创建命令行解析器
+        self.hacknews_client = hacknews_client
 
     def create_parser(self):
         # 创建并配置命令行解析器
@@ -50,6 +54,14 @@ class CommandHandler:
         parser_generate.add_argument('file', type=str, help='The markdown file to generate report from')
         parser_generate.set_defaults(func=self.generate_daily_report)
 
+        parser_export_hack = subparsers.add_parser('export-hack', help='Export top hack news')
+        parser_export_hack.add_argument('num', type=int, help='The top num for current news')
+        parser_export_hack.set_defaults(func=self.export_hacknews_report)
+
+        parser_export_hack = subparsers.add_parser('generate-hack', help='Generate report for top hack news')
+        parser_export_hack.add_argument('path', type=str, help='TThe markdown file to generate report from')
+        parser_export_hack.set_defaults(func=self.generate_hacknews_report)
+
         # 帮助命令
         parser_help = subparsers.add_parser('help', help='Show help message')
         parser_help.set_defaults(func=self.print_help)
@@ -82,6 +94,14 @@ class CommandHandler:
     def generate_daily_report(self, args):
         self.report_generator.generate_daily_report(args.file)
         print(f"Generated daily report from file: {args.file}")
+
+    def export_hacknews_report(self, args):
+        self.hacknews_client.process_hacknews_report(args.num)
+        print(f"Exported top news for hacknews: {args.num}")
+
+    def generate_hacknews_report(self, args):
+        self.report_generator.generate_hack_report(args.path)
+        print(f"Generate report for top news for hacknews: {args.path}")
 
     def print_help(self, args=None):
         self.parser.print_help()  # 输出帮助信息

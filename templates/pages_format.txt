@@ -1,0 +1,13 @@
+{% if headlines|length > 0 %}
+{% for unit in headlines %}
+---
+### 标题: {{unit["title"]}}
+
+### 链接: {{unit["link"]}}
+
+#### 正文: [
+{{unit["content"]}}
+]
+
+{% endfor %}
+{% endif %}
