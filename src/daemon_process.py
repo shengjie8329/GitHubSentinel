@@ -8,6 +8,7 @@ from github_client import GitHubClient  # 导入GitHub客户端类，处理GitHu
 from notifier import Notifier  # 导入通知器类，用于发送通知
 from report_generator import ReportGenerator  # 导入报告生成器类
 from llm import LLM  # 导入语言模型类，可能用于生成报告内容
+from hacknews_client import HackNewsClient
 from subscription_manager import SubscriptionManager  # 导入订阅管理器类，管理GitHub仓库订阅
 from logger import LOG  # 导入日志记录器
 
@@ -29,6 +30,11 @@ def github_job(subscription_manager, github_client, report_generator, notifier, 
         notifier.notify(repo, report)
     LOG.info(f"[定时任务执行完毕]")
 
+def hacknews_job(hacknews_client: HackNewsClient, report_generator, notifier, num: int = 0):
+    file_path = hacknews_client.process_hacknews_report(num)
+    report, report_file_path = report_generator.generate_daily_report(file_path, report_type=2)
+    notifier.notify("[HackNews] 最新简报", report)
+    LOG.info(f"[HackNews定时任务执行完毕]")
 
 def main():
     # 设置信号处理器
@@ -40,14 +46,19 @@ def main():
     llm = LLM(config)  # 创建语言模型实例
     report_generator = ReportGenerator(llm)  # 创建报告生成器实例
     subscription_manager = SubscriptionManager(config.subscriptions_file)  # 创建订阅管理器实例
+    hacknews_client = HackNewsClient()
 
-    # 启动时立即执行（如不需要可注释）
-    github_job(subscription_manager, github_client, report_generator, notifier, config.freq_days)
+    # # 启动时立即执行（如不需要可注释）
+    # github_job(subscription_manager, github_client, report_generator, notifier, config.freq_days)
+    #
+    # # 安排每天的定时任务
+    # schedule.every(config.freq_days).days.at(
+    #     config.exec_time
+    # ).do(github_job, subscription_manager, github_client, report_generator, notifier, config.freq_days)
 
-    # 安排每天的定时任务
-    schedule.every(config.freq_days).days.at(
-        config.exec_time
-    ).do(github_job, subscription_manager, github_client, report_generator, notifier, config.freq_days)
+    hacknews_job(hacknews_client, report_generator, notifier, 5)
+    # 每3分钟执行1次
+    schedule.every(3).minutes.do(hacknews_job, hacknews_client, report_generator, notifier, 5)
 
     try:
         # 在守护进程中持续运行
