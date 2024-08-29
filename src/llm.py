@@ -38,7 +38,7 @@ class LLM:
         sys_prompts = self.system_prompt
         if report_type == 2:
             sys_prompts = self.hack_system_prompt
-
+        LOG.info("system prompts: "+sys_prompts)
         messages = [
             {"role": "system", "content": sys_prompts},
             {"role": "user", "content": markdown_content},
