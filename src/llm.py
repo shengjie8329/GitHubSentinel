@@ -13,7 +13,7 @@ class LLM:
         self.model = config.llm_model_type.lower()  # 获取模型类型并转换为小写
         if self.model == "openai":
             from openai import OpenAI  # 导入OpenAI库用于访问GPT模型
-            self.client = OpenAI()  # 创建OpenAI客户端实例
+            self.client = OpenAI(base_url="https://ai-yyds.com/v1")  # 创建OpenAI客户端实例
         elif self.model == "ollama":
             self.api_url = config.ollama_api_url  # 设置Ollama API的URL
         else:
@@ -22,18 +22,25 @@ class LLM:
         # 从TXT文件加载系统提示信息
         with open("prompts/report_prompt.txt", "r", encoding='utf-8') as file:
             self.system_prompt = file.read()
+        with open("prompts/hack_prompt.txt", "r", encoding='utf-8') as file:
+            self.hack_system_prompt = file.read()
 
-    def generate_daily_report(self, markdown_content, dry_run=False):
+    def generate_daily_report(self, markdown_content, dry_run=False, report_type: int = 1):
         """
         生成每日报告，根据配置选择不同的模型来处理请求。
         
+        :param report_type:  生成报告的类型
         :param markdown_content: 用户提供的Markdown内容。
         :param dry_run: 如果为True，提示信息将保存到文件而不实际调用模型。
         :return: 生成的报告内容或"DRY RUN"字符串。
         """
         # 准备消息列表，包含系统提示和用户内容
+        sys_prompts = self.system_prompt
+        if report_type == 2:
+            sys_prompts = self.hack_system_prompt
+
         messages = [
-            {"role": "system", "content": self.system_prompt},
+            {"role": "system", "content": sys_prompts},
             {"role": "user", "content": markdown_content},
         ]
 

@@ -4,6 +4,7 @@ from config import Config  # 从config模块导入Config类，用于配置管理
 from github_client import GitHubClient  # 从github_client模块导入GitHubClient类，用于GitHub API操作
 from report_generator import ReportGenerator  # 从report_generator模块导入ReportGenerator类，用于报告生成
 from llm import LLM  # 从llm模块导入LLM类，可能用于语言模型相关操作
+from hacknews_client import HackNewsClient
 from subscription_manager import SubscriptionManager  # 从subscription_manager模块导入SubscriptionManager类，管理订阅
 from command_handler import CommandHandler  # 从command_handler模块导入CommandHandler类，处理命令行命令
 from logger import LOG  # 从logger模块导入LOG对象，用于日志记录
@@ -14,7 +15,8 @@ def main():
     llm = LLM(config)  # 创建语言模型实例
     report_generator = ReportGenerator(llm)  # 创建报告生成器实例
     subscription_manager = SubscriptionManager(config.subscriptions_file)  # 创建订阅管理器实例
-    command_handler = CommandHandler(github_client, subscription_manager, report_generator)  # 创建命令处理器实例
+    hacknews_client = HackNewsClient()
+    command_handler = CommandHandler(github_client, subscription_manager, report_generator, hacknews_client)  # 创建命令处理器实例
     
     parser = command_handler.parser  # 获取命令解析器
     command_handler.print_help()  # 打印帮助信息
