@@ -6,16 +6,16 @@
         "progress_execution_time": "08:00"
     },
     "email":  {
-        "smtp_server": "smtp.exmail.qq.com",
+        "smtp_server": "smtp.qq.com",
         "smtp_port": 465,
-        "from": "pjt@zaijidata.com",
+        "from": "2652826001@qq.com",
         "password": "",
-        "to": "test@zaijidata.com"
+        "to": "2652826001@qq.com"
     },
     "llm": {
         "model_type": "ollama",
         "openai_model_name": "gpt-4o-mini",
-        "ollama_model_name": "llama3.1",
+        "ollama_model_name": "llama3.1:70b",
         "ollama_api_url": "http://localhost:11434/api/chat"
     },
     "report_types": [

@@ -7,11 +7,15 @@ from logger import LOG  # 导入日志模块
 class HackerNewsClient:
     def __init__(self):
         self.url = 'https://news.ycombinator.com/'  # Hacker News的URL
+        self.proxies = {
+            'http': 'http://127.0.0.1:7890',
+            'https': 'http://127.0.0.1:7890'  # https -> http
+        }
 
     def fetch_top_stories(self):
         LOG.debug("准备获取Hacker News的热门新闻。")
         try:
-            response = requests.get(self.url, timeout=10)
+            response = requests.get(self.url, timeout=10, proxies=self.proxies, verify=False)
             response.raise_for_status()  # 检查请求是否成功
             top_stories = self.parse_stories(response.text)  # 解析新闻数据
             return top_stories

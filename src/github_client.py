@@ -9,7 +9,10 @@ class GitHubClient:
     def __init__(self, token):
         self.token = token  # GitHub API令牌
         self.headers = {'Authorization': f'token {self.token}'}  # 设置HTTP头部认证信息
-
+        self.proxies = {
+            'http': 'http://127.0.0.1:7890',
+            'https': 'http://127.0.0.1:7890'  # https -> http
+        }
     def fetch_updates(self, repo, since=None, until=None):
         # 获取指定仓库的更新，可以指定开始和结束日期
         updates = {
@@ -29,7 +32,7 @@ class GitHubClient:
             params['until'] = until  # 如果指定了结束日期，添加到参数中
 
         try:
-            response = requests.get(url, headers=self.headers, params=params, timeout=10)
+            response = requests.get(url, headers=self.headers, params=params, timeout=10, proxies=self.proxies, verify=False)
             response.raise_for_status()  # 检查请求是否成功
             return response.json()  # 返回JSON格式的数据
         except Exception as e:
@@ -42,7 +45,7 @@ class GitHubClient:
         url = f'https://api.github.com/repos/{repo}/issues'  # 构建获取问题的API URL
         params = {'state': 'closed', 'since': since, 'until': until}
         try:
-            response = requests.get(url, headers=self.headers, params=params, timeout=10)
+            response = requests.get(url, headers=self.headers, params=params, timeout=10, proxies=self.proxies, verify=False)
             response.raise_for_status()
             return response.json()
         except Exception as e:
@@ -55,7 +58,7 @@ class GitHubClient:
         url = f'https://api.github.com/repos/{repo}/pulls'  # 构建获取拉取请求的API URL
         params = {'state': 'closed', 'since': since, 'until': until}
         try:
-            response = requests.get(url, headers=self.headers, params=params, timeout=10)
+            response = requests.get(url, headers=self.headers, params=params, timeout=10, proxies=self.proxies, verify=False)
             response.raise_for_status()  # 确保成功响应
             return response.json()
         except Exception as e:
