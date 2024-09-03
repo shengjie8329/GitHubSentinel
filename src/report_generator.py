@@ -1,6 +1,7 @@
 import os
 from logger import LOG  # 导入日志模块
 
+
 class ReportGenerator:
     def __init__(self, llm, report_types):
         self.llm = llm  # 初始化时接受一个LLM实例，用于后续生成报告
@@ -29,7 +30,7 @@ class ReportGenerator:
 
         system_prompt = self.prompts.get("github")
         report = self.llm.generate_report(system_prompt, markdown_content)
-        
+
         report_file_path = os.path.splitext(markdown_file_path)[0] + "_report.md"
         with open(report_file_path, 'w+') as report_file:
             report_file.write(report)
@@ -46,7 +47,7 @@ class ReportGenerator:
 
         system_prompt = self.prompts.get("hacker_news_hours_topic")
         report = self.llm.generate_report(system_prompt, markdown_content)
-        
+
         report_file_path = os.path.splitext(markdown_file_path)[0] + "_topic.md"
         with open(report_file_path, 'w+') as report_file:
             report_file.write(report)
@@ -67,15 +68,14 @@ class ReportGenerator:
 
         # 确保 tech_trends 目录存在
         os.makedirs(os.path.dirname(report_file_path), exist_ok=True)
-        
+
         report = self.llm.generate_report(system_prompt, markdown_content)
-        
+
         with open(report_file_path, 'w+') as report_file:
             report_file.write(report)
-        
+
         LOG.info(f"Hacker News 每日汇总报告已保存到 {report_file_path}")
         return report, report_file_path
-
 
     def _aggregate_topic_reports(self, directory_path):
         """
@@ -87,6 +87,23 @@ class ReportGenerator:
                 with open(os.path.join(directory_path, filename), 'r') as file:
                     markdown_content += file.read() + "\n"
         return markdown_content
+
+    def generate_douban_report(self, markdown_file_path):
+        """
+           生成 douban 电影的推荐报告，并保存为 {original_filename}_report.md。
+        """
+        with open(markdown_file_path, 'r') as file:
+            markdown_content = file.read()
+
+        system_prompt = self.prompts.get("douban")
+        report = self.llm.generate_report(system_prompt, markdown_content)
+
+        report_file_path = os.path.splitext(markdown_file_path)[0] + "_report.md"
+        with open(report_file_path, 'w+') as report_file:
+            report_file.write(report)
+
+        LOG.info(f"豆瓣电影列表已保存到 {report_file_path}")
+        return report, report_file_path
 
 
 if __name__ == '__main__':

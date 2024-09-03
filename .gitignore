@@ -165,6 +165,7 @@ cython_debug/
 daily_progress/*
 hacker_news/*
 hack_news/*
+douban/*
 src/jupyter/*.md
 src/jupyter/daily_progress/*
 run/*

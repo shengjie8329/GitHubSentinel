@@ -4,10 +4,11 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from logger import LOG
 
+
 class Notifier:
     def __init__(self, email_settings):
         self.email_settings = email_settings
-    
+
     def notify_github_report(self, repo, report):
         """
         发送 GitHub 项目报告邮件
@@ -19,7 +20,7 @@ class Notifier:
             self.send_email(subject, report)
         else:
             LOG.warning("邮件设置未配置正确，无法发送 GitHub 报告通知")
-    
+
     def notify_hn_report(self, date, report):
         """
         发送 Hacker News 每日技术趋势报告邮件
@@ -31,14 +32,26 @@ class Notifier:
             self.send_email(subject, report)
         else:
             LOG.warning("邮件设置未配置正确，无法发送 Hacker News 报告通知")
-    
+
+    def notify_douban_report(self, date, report):
+        """
+        发送 豆瓣 最新热门电影
+        :param date: 报告时间
+        :param report: 报告内容
+        """
+        if self.email_settings:
+            subject = f"[豆瓣] {date} 热门电影排行"
+            self.send_email(subject, report)
+        else:
+            LOG.warning("邮件设置未配置正确，无法发送 豆瓣 报告通知")
+
     def send_email(self, subject, report):
         LOG.info(f"准备发送邮件:{subject}")
         msg = MIMEMultipart()
         msg['From'] = self.email_settings['from']
         msg['To'] = self.email_settings['to']
         msg['Subject'] = subject
-        
+
         # 将Markdown内容转换为HTML
         html_report = markdown2.markdown(report)
 
@@ -52,8 +65,10 @@ class Notifier:
         except Exception as e:
             LOG.error(f"发送邮件失败：{str(e)}")
 
+
 if __name__ == '__main__':
     from config import Config
+
     config = Config()
     notifier = Notifier(config.email)
 

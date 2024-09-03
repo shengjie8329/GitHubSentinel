@@ -1,0 +1,10 @@
+{% if movies|length > 0 %}
+{% for unit in movies %}
+---
+### 名称: {{unit["title"]}}
+### 链接: {{unit["url"]}}
+### 年份: {{unit["year"]}}
+### 评分: {{unit["rating"]}}
+### 简介: {{unit["comment"]}}
+{% endfor %}
+{% endif %}
